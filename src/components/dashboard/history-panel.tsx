@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { JournalEntry } from '@/types';
-import { CalendarDays, X } from 'lucide-react';
+import { CalendarDays, Smile, Tag, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface HistoryPanelProps {
   isOpen: boolean;
@@ -30,11 +31,27 @@ export function HistoryPanel({ isOpen, onOpenChange, entries }: HistoryPanelProp
             <div className="space-y-6">
               {entries.map(entry => (
                 <div key={entry.id} className="p-4 rounded-lg border bg-card-foreground/5 shadow-sm">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                    <CalendarDays className="w-4 h-4" />
-                    <span>{new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4" />
+                      <span>{new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    {entry.mood && (
+                      <div className="flex items-center gap-1">
+                        <Smile className="w-4 h-4" /> 
+                        <span>{entry.mood}</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{entry.text}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed mb-2">{entry.text}</p>
+                  {entry.tags && entry.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <Tag className="w-4 h-4 text-muted-foreground" />
+                      {entry.tags.map(tag => (
+                        <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

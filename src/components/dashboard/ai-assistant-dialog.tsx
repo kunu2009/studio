@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, ListPlus, BookOpenText, X } from 'lucide-react';
+import { Loader2, Wand2, ListPlus, BookOpenText, Lightbulb, X } from 'lucide-react'; // Added Lightbulb
 import { useToast } from '@/hooks/use-toast';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { JournalEntry, TodoItem } from '@/types';
-import { handleGenerateTodoListAction, handleSummarizeJournalAction } from '@/app/actions';
+import { handleGenerateTodoListAction, handleSummarizeJournalAction, handleExplainTopicAction } from '@/app/actions'; // Added handleExplainTopicAction
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AiAssistantDialogProps {
@@ -24,7 +24,7 @@ interface AiAssistantDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type AiAction = 'generateTodo' | 'summarizeJournal' | null;
+type AiAction = 'generateTodo' | 'summarizeJournal' | 'explainTopic' | null; // Added 'explainTopic'
 
 export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogProps) {
   const [selectedAction, setSelectedAction] = useState<AiAction>(null);
@@ -32,8 +32,8 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | string[] | null>(null);
   const { toast } = useToast();
-  const [journalEntries] = useLocalStorage<JournalEntry[]>('zenith-journal', []);
-  const [todos, setTodos] = useLocalStorage<TodoItem[]>('zenith-todos', []);
+  const [journalEntries] = useLocalStorage<JournalEntry[]>('sevenk-journal', []); // Updated key
+  const [todos, setTodos] = useLocalStorage<TodoItem[]>('sevenk-todos', []); // Updated key
 
 
   const resetDialog = () => {
@@ -76,7 +76,7 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
       }));
       setTodos(prev => [...prev, ...newTodos]);
       toast({ title: "Tasks Added", description: `${newTodos.length} tasks added to your list.` });
-      setAiResponse(null); // Clear suggestions after adding
+      setAiResponse(null); 
     }
   };
 
@@ -87,7 +87,7 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
     }
     setIsLoading(true);
     setAiResponse(null);
-    const entriesText = journalEntries.map(entry => `Date: ${new Date(entry.date).toLocaleDateString()}\n${entry.text}`).join('\n\n---\n\n');
+    const entriesText = journalEntries.map(entry => `Date: ${new Date(entry.date).toLocaleDateString()}\nMood: ${entry.mood || 'N/A'}\nTags: ${entry.tags?.join(', ') || 'N/A'}\n${entry.text}`).join('\n\n---\n\n');
     const result = await handleSummarizeJournalAction({ journalEntries: entriesText });
     setIsLoading(false);
     if ('error' in result) {
@@ -98,6 +98,23 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
     }
   };
 
+  const handleExplainTopic = async () => {
+    if (!prompt.trim()) {
+      toast({ title: "Topic is empty", description: "Please provide a topic for explanation.", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+    setAiResponse(null);
+    const result = await handleExplainTopicAction({ topic: prompt });
+    setIsLoading(false);
+    if ('error' in result) {
+      toast({ title: "AI Error", description: result.error, variant: "destructive" });
+    } else {
+      setAiResponse(result.explanation);
+      toast({ title: "Topic Explanation Generated", description: "Review the explanation below." });
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -105,9 +122,14 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
     }
 
     if (aiResponse) {
+      let title = "AI Response:";
+      if (selectedAction === 'generateTodo') title = "Suggested To-Do Items:";
+      if (selectedAction === 'summarizeJournal') title = "Journal Summary:";
+      if (selectedAction === 'explainTopic') title = "Topic Explanation:";
+      
       return (
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">{selectedAction === 'generateTodo' ? "Suggested To-Do Items:" : "Journal Summary:"}</h3>
+          <h3 className="font-semibold text-lg">{title}</h3>
           <ScrollArea className="h-60 p-2 border rounded-md bg-card-foreground/5">
             {Array.isArray(aiResponse) ? (
               <ul className="list-disc list-inside space-y-1">
@@ -160,6 +182,25 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
       );
     }
 
+    if (selectedAction === 'explainTopic') {
+      return (
+        <div className="space-y-4">
+          <DialogDescription>Enter a topic or question you want the AI to explain (e.g., "What is photosynthesis?", "Explain blockchain technology").</DialogDescription>
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="e.g., The Theory of Relativity"
+            rows={3}
+            className="resize-none"
+          />
+          <Button onClick={handleExplainTopic} className="w-full">
+            <Lightbulb className="w-4 h-4 mr-2" /> Explain Topic
+          </Button>
+        </div>
+      );
+    }
+
+
     return (
       <div className="space-y-4">
         <DialogDescription>What would you like the AI assistant to help you with?</DialogDescription>
@@ -175,6 +216,13 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
            <div>
             <p className="font-semibold">Summarize My Journal</p>
             <p className="text-xs text-muted-foreground text-left">Identify recurring themes in your entries.</p>
+          </div>
+        </Button>
+        <Button onClick={() => setSelectedAction('explainTopic')} variant="outline" className="w-full justify-start p-4 h-auto">
+          <Lightbulb className="w-5 h-5 mr-3 text-primary" />
+           <div>
+            <p className="font-semibold">Explain a Topic</p>
+            <p className="text-xs text-muted-foreground text-left">Get explanations for concepts or questions.</p>
           </div>
         </Button>
       </div>
@@ -195,7 +243,7 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
         </div>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button type="button" variant="ghost">
+            <Button type="button" variant="ghost" onClick={() => { if (aiResponse || selectedAction) resetDialog(); else onOpenChange(false); }}>
               <X className="w-4 h-4 mr-2" />
               {aiResponse || selectedAction ? "Back" : "Cancel"}
             </Button>

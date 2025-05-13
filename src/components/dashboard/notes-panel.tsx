@@ -15,13 +15,13 @@ interface NotesPanelProps {
 }
 
 const initialNote: AdvancedNote = {
-  id: 'main-note',
+  id: 'main-note', // This ID might become dynamic if multiple notes are supported later
   content: '',
   lastModified: new Date().toISOString(),
 };
 
 export function NotesPanel({ isOpen, onOpenChange }: NotesPanelProps) {
-  const [note, setNote] = useLocalStorage<AdvancedNote>('zenith-advanced-note', initialNote);
+  const [note, setNote] = useLocalStorage<AdvancedNote>('sevenk-main-note', initialNote);
   const { toast } = useToast();
 
   const handleSaveNote = () => {

@@ -7,7 +7,7 @@ export function AppLogo(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 100 100"
       width="40"
       height="40"
-      aria-label="Zenith Zone Logo"
+      aria-label="7K Life Logo"
       {...props}
     >
       <defs>
@@ -22,14 +22,14 @@ export function AppLogo(props: SVGProps<SVGSVGElement>) {
       />
       <text
         x="50"
-        y="60"
+        y="62" // Adjusted y for better vertical centering of "7K"
         fontFamily="var(--font-geist-sans), Segoe UI, sans-serif"
-        fontSize="40"
+        fontSize="32" // Adjusted font size to fit "7K"
         fill="hsl(var(--primary-foreground))"
         textAnchor="middle"
         fontWeight="bold"
       >
-        Z
+        7K
       </text>
     </svg>
   );
