@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { HabitTracker } from '@/components/dashboard/habit-tracker'; // Updated import
+import { HabitTracker } from '@/components/dashboard/habit-tracker';
 import { TodoList } from '@/components/dashboard/todo-list';
 import { Journal } from '@/components/dashboard/journal';
 import { AiAssistantDialog } from '@/components/dashboard/ai-assistant-dialog';
@@ -30,10 +30,10 @@ export default function SevenKLifePage() { // Renamed component
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <HabitTracker /> {/* Updated component */}
+          <TodoList />
         </div>
         <div className="lg:col-span-1">
-          <TodoList />
+          <HabitTracker />
         </div>
         <div className="lg:col-span-1">
           <Journal onViewHistory={() => setIsHistoryPanelOpen(true)} />

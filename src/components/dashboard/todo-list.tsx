@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ListChecks, Trash2, PlusCircle, CalendarIcon, AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { ListChecks, Trash2, PlusCircle, CalendarIcon, AlertTriangle, Info, CheckCircle, Pencil } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { TodoItem } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -20,6 +20,9 @@ export function TodoList() {
   const [newTask, setNewTask] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | undefined>(undefined);
   const [newDueDate, setNewDueDate] = useState<Date | undefined>(undefined);
+
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingTaskText, setEditingTaskText] = useState('');
 
   const handleAddTask = () => {
     if (newTask.trim() === '') return;
@@ -46,6 +49,29 @@ export function TodoList() {
 
   const handleRemoveTodo = (id: string) => {
     setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
+  };
+
+  const handleEditClick = (todo: TodoItem) => {
+    setEditingTodoId(todo.id);
+    setEditingTaskText(todo.task);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTodoId(null);
+    setEditingTaskText('');
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTodoId || editingTaskText.trim() === '') {
+        handleCancelEdit();
+        return;
+    };
+    setTodos(prevTodos =>
+        prevTodos.map(todo =>
+            todo.id === editingTodoId ? { ...todo, task: editingTaskText.trim() } : todo
+        )
+    );
+    handleCancelEdit();
   };
 
   const getPriorityIcon = (priority?: 'low' | 'medium' | 'high') => {
@@ -124,38 +150,66 @@ export function TodoList() {
                   key={todo.id}
                   className="flex items-center justify-between p-3 bg-card-foreground/5 rounded-lg"
                 >
-                  <div className="flex items-center gap-3 flex-grow min-w-0">
-                    <Checkbox
-                      id={`todo-${todo.id}`}
-                      checked={todo.completed}
-                      onCheckedChange={() => handleToggleTodo(todo.id)}
-                      aria-labelledby={`todo-label-${todo.id}`}
-                    />
-                    <div className="flex-grow min-w-0">
-                      <label
-                        htmlFor={`todo-${todo.id}`}
-                        id={`todo-label-${todo.id}`}
-                        className={`cursor-pointer break-words ${todo.completed ? 'line-through text-muted-foreground' : ''}`}
-                      >
-                        {todo.task}
-                      </label>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {getPriorityIcon(todo.priority)}
-                        {todo.priority && <span className="capitalize">{todo.priority}</span>}
-                        {todo.priority && todo.dueDate && <span className="mx-1">·</span>}
-                        {todo.dueDate && <span>{format(parseISO(todo.dueDate), "MMM d")}</span>}
-                      </div>
+                  {editingTodoId === todo.id ? (
+                     <div className="flex items-center gap-2 w-full">
+                        <Input
+                            value={editingTaskText}
+                            onChange={(e) => setEditingTaskText(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEdit();
+                                if (e.key === 'Escape') handleCancelEdit();
+                            }}
+                            autoFocus
+                            className="h-9"
+                        />
+                        <Button size="sm" onClick={handleSaveEdit}>Save</Button>
+                        <Button size="sm" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveTodo(todo.id)}
-                    aria-label={`Remove task: ${todo.task}`}
-                    className="ml-2 flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive/80 hover:text-destructive" />
-                  </Button>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 flex-grow min-w-0">
+                        <Checkbox
+                          id={`todo-${todo.id}`}
+                          checked={todo.completed}
+                          onCheckedChange={() => handleToggleTodo(todo.id)}
+                          aria-labelledby={`todo-label-${todo.id}`}
+                        />
+                        <div className="flex-grow min-w-0">
+                          <label
+                            htmlFor={`todo-${todo.id}`}
+                            id={`todo-label-${todo.id}`}
+                            className={`cursor-pointer break-words ${todo.completed ? 'line-through text-muted-foreground' : ''}`}
+                          >
+                            {todo.task}
+                          </label>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                            {getPriorityIcon(todo.priority)}
+                            {todo.priority && <span className="capitalize">{todo.priority}</span>}
+                            {todo.priority && todo.dueDate && <span className="mx-1">·</span>}
+                            {todo.dueDate && <span>{format(parseISO(todo.dueDate), "MMM d")}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(todo)}
+                            aria-label={`Edit task: ${todo.task}`}
+                          >
+                            <Pencil className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveTodo(todo.id)}
+                            aria-label={`Remove task: ${todo.task}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive/80 hover:text-destructive" />
+                          </Button>
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
