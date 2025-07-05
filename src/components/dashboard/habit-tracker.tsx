@@ -1,174 +1,195 @@
-
-// src/components/dashboard/habit-tracker.tsx
 "use client";
 
-import type { ChangeEvent } from 'react';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Flame, Dumbbell, BedDouble, Minus, Plus, TrendingUp } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Trash2, Minus, TrendingUp } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
-import type { Habit } from '@/types';
-
-const initialHabits: Habit[] = [
-  { id: 'fapStreak', name: 'Streak Counter', type: 'streak', value: 0, unit: 'days' },
-  { id: 'workout', name: 'Workout Today', type: 'yesNo', value: false },
-  { id: 'sleepHours', name: 'Sleep Hours (last night)', type: 'value', value: 0, unit: 'h' },
-];
+import type { Habit, HabitType } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export function HabitTracker() {
-  // Initialize useLocalStorage with initialHabits directly.
-  // If 'sevenk-habits' exists in localStorage, it will be used.
-  // Otherwise, initialHabits will be the starting value.
-  const [habits, setHabits] = useLocalStorage<Habit[]>('sevenk-habits', initialHabits);
-  
-  const [sleepInput, setSleepInput] = useState<string>('');
+  const [habits, setHabits] = useLocalStorage<Habit[]>('sevenk-habits-v2', []);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newHabitName, setNewHabitName] = useState('');
+  const [newHabitType, setNewHabitType] = useState<HabitType>('yesNo');
+  const [newHabitGoal, setNewHabitGoal] = useState('10');
+  const [newHabitUnit, setNewHabitUnit] = useState('');
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // If habits were loaded from localStorage and 'fapStreak' has the old name,
-    // update it to the new default. This is a one-time gentle migration.
-    // Users who have already customized it to something else (not "Fap Streak") won't be affected.
-    const fapStreakHabit = habits.find(h => h.id === 'fapStreak');
-    if (fapStreakHabit && fapStreakHabit.name === 'Fap Streak') {
-      setHabits(prevHabits => 
-        prevHabits.map(h => 
-          h.id === 'fapStreak' ? { ...h, name: 'Streak Counter' } : h
-        )
+  const handleAddHabit = () => {
+    if (!newHabitName.trim()) {
+      toast({ title: 'Habit name is required.', variant: 'destructive' });
+      return;
+    }
+
+    const goal = newHabitType === 'yesNo' ? 1 : parseInt(newHabitGoal, 10);
+    if (newHabitType === 'counter' && (isNaN(goal) || goal <= 0)) {
+        toast({ title: 'Counter goal must be a positive number.', variant: 'destructive' });
+        return;
+    }
+
+    const newHabit: Habit = {
+      id: crypto.randomUUID(),
+      name: newHabitName.trim(),
+      type: newHabitType,
+      value: 0,
+      goal: goal,
+      unit: newHabitType === 'counter' ? newHabitUnit.trim() : undefined,
+    };
+
+    setHabits(prev => [...prev, newHabit]);
+    toast({ title: `Habit "${newHabit.name}" added.` });
+
+    setNewHabitName('');
+    setNewHabitType('yesNo');
+    setNewHabitGoal('10');
+    setNewHabitUnit('');
+    setIsDialogOpen(false);
+  };
+
+  const handleRemoveHabit = (id: string) => {
+    setHabits(prev => prev.filter(habit => habit.id !== id));
+  };
+
+  const updateHabitValue = (id: string, newValue: number) => {
+    setHabits(prev =>
+      prev.map(h => {
+        if (h.id === id) {
+          const clampedValue = Math.max(0, Math.min(newValue, h.goal));
+          return { ...h, value: clampedValue };
+        }
+        return h;
+      })
+    );
+  };
+
+  const renderHabitControls = (habit: Habit) => {
+    if (habit.type === 'yesNo') {
+      const isCompleted = habit.value >= 1;
+      return (
+        <div className="flex items-center gap-2">
+            <Checkbox
+                id={`habit-${habit.id}`}
+                checked={isCompleted}
+                onCheckedChange={(checked) => updateHabitValue(habit.id, checked ? 1 : 0)}
+            />
+            <Label htmlFor={`habit-${habit.id}`} className={isCompleted ? 'text-primary' : ''}>
+                {isCompleted ? 'Done!' : 'Mark as Done'}
+            </Label>
+        </div>
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHabits]); // Run once on mount effectively to check for old name.
-
-  useEffect(() => {
-    const sleepHabit = habits.find(h => h.id === 'sleepHours');
-    if (sleepHabit && typeof sleepHabit.value === 'number') {
-      setSleepInput(sleepHabit.value.toString());
+    if (habit.type === 'counter') {
+      return (
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => updateHabitValue(habit.id, habit.value - 1)} aria-label="Decrease count">
+            <Minus className="w-4 h-4" />
+          </Button>
+          <span className="text-lg font-semibold w-20 text-center">
+            {habit.value} / {habit.goal}
+          </span>
+          <Button variant="outline" size="icon" onClick={() => updateHabitValue(habit.id, habit.value + 1)} aria-label="Increase count">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+      );
     }
-  }, [habits]);
-
-
-  const updateHabitValue = (id: string, newValue: number | boolean) => {
-    setHabits(prev => prev.map(h => h.id === id ? { ...h, value: newValue } : h));
-  };
-
-  // Function to update a habit's name
-  const updateHabitName = (id: string, newName: string) => {
-    setHabits(prev => prev.map(h => h.id === id ? { ...h, name: newName } : h));
-  };
-
-  const handleStreakChange = (id: string, increment: boolean) => {
-    const habit = habits.find(h => h.id === id);
-    if (habit && habit.type === 'streak' && typeof habit.value === 'number') {
-      updateHabitValue(id, Math.max(0, habit.value + (increment ? 1 : -1)));
-    }
-  };
-
-  const handleToggleChange = (id: string, checked: boolean) => {
-    const habit = habits.find(h => h.id === id);
-    if (habit && habit.type === 'yesNo') {
-      updateHabitValue(id, checked);
-    }
-  };
-  
-  const handleSleepInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSleepInput(e.target.value);
-  };
-
-  const handleSetSleep = () => {
-    const sleepHabit = habits.find(h => h.id === 'sleepHours');
-    if (sleepHabit && sleepHabit.type === 'value') {
-      const hours = parseFloat(sleepInput);
-      if (!isNaN(hours) && hours >= 0 && hours <= 24) {
-        updateHabitValue('sleepHours', hours);
-      } else {
-        if (typeof sleepHabit.value === 'number') {
-          setSleepInput(sleepHabit.value.toString());
-        }
-      }
-    }
-  };
-
-  const getHabitIcon = (id: string) => {
-    if (id === 'fapStreak') return <Flame className="w-6 h-6 text-primary" />;
-    if (id === 'workout') return <Dumbbell className="w-6 h-6 text-primary" />;
-    if (id === 'sleepHours') return <BedDouble className="w-6 h-6 text-primary" />;
-    return <TrendingUp className="w-6 h-6 text-primary" />;
+    return null;
   };
 
   return (
     <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl text-primary">
-          <TrendingUp className="w-6 h-6" />
-          Habit Tracker
-        </CardTitle>
-        <CardDescription>Monitor your key habits for self-improvement.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {habits.map((habit) => (
-          <div key={habit.id} className="flex items-center justify-between p-3 bg-card-foreground/5 rounded-lg">
-            <div className="flex items-center gap-3 flex-grow min-w-0"> {/* Added min-w-0 for flex child */}
-              {getHabitIcon(habit.id)}
-              {habit.id === 'fapStreak' ? (
-                <Input
-                  id={`${habit.id}-name-input`}
-                  value={habit.name}
-                  onChange={(e) => updateHabitName(habit.id, e.target.value)}
-                  className="font-medium h-9 px-3 text-sm w-full max-w-[220px]" // Adjusted width
-                  aria-label="Custom streak counter name"
-                />
-              ) : (
-                <Label htmlFor={`${habit.id}-control`} className="font-medium">{habit.name}</Label>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
-              {habit.type === 'streak' && typeof habit.value === 'number' && (
-                <>
-                  <Button variant="outline" size="icon" onClick={() => handleStreakChange(habit.id, false)} aria-label={`Decrease ${habit.name}`}>
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                  <span id={`${habit.id}-control`} className="text-lg font-semibold w-8 text-center">{habit.value}</span>
-                  <Button variant="outline" size="icon" onClick={() => handleStreakChange(habit.id, true)} aria-label={`Increase ${habit.name}`}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                  {habit.unit && <span className="text-sm text-muted-foreground">{habit.unit}</span>}
-                </>
-              )}
-
-              {habit.type === 'yesNo' && typeof habit.value === 'boolean' && (
-                <Switch
-                  id={`${habit.id}-control`}
-                  checked={habit.value}
-                  onCheckedChange={(checked) => handleToggleChange(habit.id, checked)}
-                  aria-label={`Toggle ${habit.name}`}
-                />
-              )}
-
-              {habit.id === 'sleepHours' && habit.type === 'value' && typeof habit.value === 'number' && (
-                 <div className="flex items-center gap-2"> {/* Ensured this is also a flex container */}
-                  <Input
-                    id={`${habit.id}-control`}
-                    type="number"
-                    min="0"
-                    max="24"
-                    step="0.5"
-                    value={sleepInput}
-                    onChange={handleSleepInputChange}
-                    onBlur={handleSetSleep} 
-                    className="w-20"
-                    aria-label={`Enter ${habit.name}`}
-                  />
-                  <Button onClick={handleSetSleep} variant="outline" size="sm">Set</Button>
-                   <span className="text-sm text-muted-foreground">{habit.value}{habit.unit}</span>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div className="flex-grow">
+          <CardTitle className="flex items-center gap-2 text-xl text-primary">
+            <TrendingUp className="w-6 h-6" />
+            Habit Tracker
+          </CardTitle>
+          <CardDescription>Build routines, track progress. Create new habits to get started.</CardDescription>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Habit
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create a New Habit</DialogTitle>
+              <DialogDescription>Define what you want to track daily.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="habit-name">Habit Name</Label>
+                <Input id="habit-name" placeholder="e.g., Read for 15 minutes" value={newHabitName} onChange={(e) => setNewHabitName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Tracking Type</Label>
+                <RadioGroup defaultValue="yesNo" value={newHabitType} onValueChange={(val: HabitType) => setNewHabitType(val as HabitType)}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yesNo" id="type-yesNo" />
+                    <Label htmlFor="type-yesNo">Daily Check-off (Yes/No)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="counter" id="type-counter" />
+                    <Label htmlFor="type-counter">Counter (e.g., glasses of water)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              {newHabitType === 'counter' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="habit-goal">Goal</Label>
+                    <Input id="habit-goal" type="number" min="1" value={newHabitGoal} onChange={(e) => setNewHabitGoal(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="habit-unit">Unit (optional)</Label>
+                    <Input id="habit-unit" placeholder="e.g., pages" value={newHabitUnit} onChange={(e) => setNewHabitUnit(e.target.value)} />
+                  </div>
                 </div>
               )}
             </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddHabit}>Save Habit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent className="space-y-4 h-[250px] overflow-y-auto pr-3">
+        {habits.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-center text-muted-foreground">No habits yet. Add one to get started!</p>
           </div>
-        ))}
+        ) : (
+          habits.map(habit => (
+            <div key={habit.id} className="p-4 rounded-lg border bg-card-foreground/5 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                    <p className="font-semibold">{habit.name}</p>
+                    {habit.type === 'counter' && habit.unit && (
+                        <p className="text-sm text-muted-foreground">Goal: {habit.goal} {habit.unit}</p>
+                    )}
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => handleRemoveHabit(habit.id)} aria-label={`Remove habit: ${habit.name}`}>
+                    <Trash2 className="w-4 h-4 text-destructive/80" />
+                </Button>
+              </div>
+              <Progress value={(habit.value / habit.goal) * 100} className="w-full" />
+              <div className="flex justify-end items-center">
+                {renderHabitControls(habit)}
+              </div>
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );

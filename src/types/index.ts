@@ -1,12 +1,12 @@
-export type HabitType = 'streak' | 'yesNo' | 'value';
+export type HabitType = 'yesNo' | 'counter';
 
 export interface Habit {
-  id: string; // e.g., 'fapStreak', 'workout', 'sleepHours'
+  id: string;
   name: string;
   type: HabitType;
-  value: number | boolean; // Current streak count, boolean for yes/no, number for value types like sleep hours
-  unit?: string; // Optional: e.g., 'days' for streak, 'hours' for sleep
-  // lastUpdated: string; // ISO date string, to track daily updates/resets if needed
+  value: number; // For yes/no, 0 or 1. For counter, the current count.
+  goal: number; // For yes/no, this is always 1. For counter, user-defined.
+  unit?: string; // Optional unit for counters
 }
 
 export interface TodoItem {
