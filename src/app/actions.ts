@@ -4,6 +4,7 @@ import { generateTodoList, GenerateTodoListInput, GenerateTodoListOutput } from 
 import { summarizeJournal, SummarizeJournalInput, SummarizeJournalOutput } from "@/ai/flows/journal-summary";
 import { explainTopic, ExplainTopicInput, ExplainTopicOutput } from "@/ai/flows/explain-topic-flow";
 import { generateQuiz, GenerateQuizInput, GenerateQuizOutput } from "@/ai/flows/generate-quiz-flow";
+import { textToSpeech, TextToSpeechInput, TextToSpeechOutput } from "@/ai/flows/text-to-speech-flow";
 import type { Quiz, QuizQuestion } from "@/types";
 
 export async function handleGenerateTodoListAction(input: GenerateTodoListInput): Promise<GenerateTodoListOutput | { error: string }> {
@@ -45,5 +46,16 @@ export async function handleGenerateQuizAction(input: GenerateQuizInput): Promis
     return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
   }
 }
+
+export async function handleTextToSpeechAction(input: TextToSpeechInput): Promise<TextToSpeechOutput | { error: string }> {
+  try {
+    const result = await textToSpeech(input);
+    return result;
+  } catch (error) {
+    console.error("Error generating speech:", error);
+    return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
+  }
+}
+
 
 export type { Quiz, QuizQuestion };

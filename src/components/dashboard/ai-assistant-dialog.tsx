@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, ListPlus, BookOpenText, Lightbulb, X } from 'lucide-react'; // Added Lightbulb
+import { Loader2, Wand2, ListPlus, BookOpenText, Lightbulb, X, Volume2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { JournalEntry, TodoItem } from '@/types';
-import { handleGenerateTodoListAction, handleSummarizeJournalAction, handleExplainTopicAction } from '@/app/actions'; // Added handleExplainTopicAction
+import { handleGenerateTodoListAction, handleSummarizeJournalAction, handleExplainTopicAction, handleTextToSpeechAction } from '@/app/actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AiAssistantDialogProps {
@@ -24,16 +24,20 @@ interface AiAssistantDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type AiAction = 'generateTodo' | 'summarizeJournal' | 'explainTopic' | null; // Added 'explainTopic'
+type AiAction = 'generateTodo' | 'summarizeJournal' | 'explainTopic' | 'textToSpeech' | null;
+
+interface AudioResponse {
+  audioDataUri: string;
+}
 
 export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogProps) {
   const [selectedAction, setSelectedAction] = useState<AiAction>(null);
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [aiResponse, setAiResponse] = useState<string | string[] | null>(null);
+  const [aiResponse, setAiResponse] = useState<string | string[] | AudioResponse | null>(null);
   const { toast } = useToast();
-  const [journalEntries] = useLocalStorage<JournalEntry[]>('sevenk-journal', []); // Updated key
-  const [todos, setTodos] = useLocalStorage<TodoItem[]>('sevenk-todos', []); // Updated key
+  const [journalEntries] = useLocalStorage<JournalEntry[]>('sevenk-journal', []);
+  const [todos, setTodos] = useLocalStorage<TodoItem[]>('sevenk-todos', []);
 
 
   const resetDialog = () => {
@@ -115,6 +119,23 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
     }
   };
 
+  const handleTextToSpeech = async () => {
+    if (!prompt.trim()) {
+      toast({ title: "Text is empty", description: "Please provide text to generate speech.", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+    setAiResponse(null);
+    const result = await handleTextToSpeechAction({ text: prompt });
+    setIsLoading(false);
+    if ('error' in result) {
+      toast({ title: "AI Error", description: result.error, variant: "destructive" });
+    } else {
+      setAiResponse(result);
+      toast({ title: "Speech Generated", description: "Press play to listen to the audio." });
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -126,19 +147,28 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
       if (selectedAction === 'generateTodo') title = "Suggested To-Do Items:";
       if (selectedAction === 'summarizeJournal') title = "Journal Summary:";
       if (selectedAction === 'explainTopic') title = "Topic Explanation:";
-      
+      if (selectedAction === 'textToSpeech') title = "Generated Audio:";
+
       return (
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">{title}</h3>
-          <ScrollArea className="h-60 p-2 border rounded-md bg-card-foreground/5">
+          <div className="p-2 border rounded-md bg-card-foreground/5 min-h-40 flex items-center justify-center">
             {Array.isArray(aiResponse) ? (
-              <ul className="list-disc list-inside space-y-1">
-                {aiResponse.map((item, index) => <li key={index}>{item}</li>)}
-              </ul>
+              <ScrollArea className="h-60 w-full">
+                <ul className="list-disc list-inside space-y-1 p-2">
+                  {aiResponse.map((item, index) => <li key={index}>{item}</li>)}
+                </ul>
+              </ScrollArea>
+            ) : typeof aiResponse === 'object' && aiResponse?.audioDataUri ? (
+              <audio controls src={aiResponse.audioDataUri} className="w-full">
+                Your browser does not support the audio element.
+              </audio>
             ) : (
-              <p className="whitespace-pre-wrap">{aiResponse}</p>
+              <ScrollArea className="h-60 w-full">
+                <p className="whitespace-pre-wrap p-2">{aiResponse as string}</p>
+              </ScrollArea>
             )}
-          </ScrollArea>
+          </div>
           {selectedAction === 'generateTodo' && Array.isArray(aiResponse) && aiResponse.length > 0 && (
              <Button onClick={handleAddSuggestedTodos} className="w-full">
                 <ListPlus className="w-4 h-4 mr-2" /> Add to My To-Do List
@@ -200,6 +230,24 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
       );
     }
 
+    if (selectedAction === 'textToSpeech') {
+      return (
+        <div className="space-y-4">
+          <DialogDescription>Enter any text, and the AI will generate speech for you to listen to.</DialogDescription>
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="e.g., Hello, this is a test of the text to speech system."
+            rows={5}
+            className="resize-none"
+          />
+          <Button onClick={handleTextToSpeech} className="w-full">
+            <Volume2 className="w-4 h-4 mr-2" /> Generate Speech
+          </Button>
+        </div>
+      );
+    }
+
 
     return (
       <div className="space-y-4">
@@ -223,6 +271,13 @@ export function AiAssistantDialog({ isOpen, onOpenChange }: AiAssistantDialogPro
            <div>
             <p className="font-semibold">Explain a Topic</p>
             <p className="text-xs text-muted-foreground text-left">Get explanations for concepts or questions.</p>
+          </div>
+        </Button>
+        <Button onClick={() => setSelectedAction('textToSpeech')} variant="outline" className="w-full justify-start p-4 h-auto">
+          <Volume2 className="w-5 h-5 mr-3 text-primary" />
+           <div>
+            <p className="font-semibold">Text-to-Speech</p>
+            <p className="text-xs text-muted-foreground text-left">Convert any text into spoken audio.</p>
           </div>
         </Button>
       </div>
