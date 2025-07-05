@@ -33,3 +33,13 @@ export interface AdvancedNote {
   content: string;
   lastModified: string;
 }
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface Quiz {
+  questions: QuizQuestion[];
+}

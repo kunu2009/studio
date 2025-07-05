@@ -2,7 +2,9 @@
 
 import { generateTodoList, GenerateTodoListInput, GenerateTodoListOutput } from "@/ai/flows/generate-todo-list";
 import { summarizeJournal, SummarizeJournalInput, SummarizeJournalOutput } from "@/ai/flows/journal-summary";
-import { explainTopic, ExplainTopicInput, ExplainTopicOutput } from "@/ai/flows/explain-topic-flow"; // Added
+import { explainTopic, ExplainTopicInput, ExplainTopicOutput } from "@/ai/flows/explain-topic-flow";
+import { generateQuiz, GenerateQuizInput, GenerateQuizOutput } from "@/ai/flows/generate-quiz-flow";
+import type { Quiz, QuizQuestion } from "@/types";
 
 export async function handleGenerateTodoListAction(input: GenerateTodoListInput): Promise<GenerateTodoListOutput | { error: string }> {
   try {
@@ -24,7 +26,7 @@ export async function handleSummarizeJournalAction(input: SummarizeJournalInput)
   }
 }
 
-export async function handleExplainTopicAction(input: ExplainTopicInput): Promise<ExplainTopicOutput | { error: string }> { // Added
+export async function handleExplainTopicAction(input: ExplainTopicInput): Promise<ExplainTopicOutput | { error: string }> {
   try {
     const result = await explainTopic(input);
     return result;
@@ -33,3 +35,15 @@ export async function handleExplainTopicAction(input: ExplainTopicInput): Promis
     return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
   }
 }
+
+export async function handleGenerateQuizAction(input: GenerateQuizInput): Promise<GenerateQuizOutput | { error: string }> {
+  try {
+    const result = await generateQuiz(input);
+    return result;
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
+  }
+}
+
+export type { Quiz, QuizQuestion };
