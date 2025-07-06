@@ -14,14 +14,13 @@ import { Bot, PanelRightOpen, Zap } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { JournalEntry } from '@/types';
 
-export default function SevenKLifePage() { // Renamed component
+export default function SevenKLifePage() {
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   const [isFlashSummaryOpen, setIsFlashSummaryOpen] = useState(false);
   
   const [loadedJournalEntries, setLoadedJournalEntries] = useState<JournalEntry[]>([]);
-  // Updated local storage key
   const [journalEntriesFromStorage] = useLocalStorage<JournalEntry[]>('sevenk-journal', []);
 
   useEffect(() => {
@@ -30,7 +29,14 @@ export default function SevenKLifePage() { // Renamed component
 
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, here's your overview.</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <TodoList />
@@ -42,7 +48,7 @@ export default function SevenKLifePage() { // Renamed component
         </div>
       </div>
 
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end">
+      <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3 items-end md:bottom-6">
         <Button
             variant="secondary"
             size="lg"
@@ -63,7 +69,7 @@ export default function SevenKLifePage() { // Renamed component
         </Button>
       </div>
 
-       <div className="fixed bottom-6 left-6 z-50 flex flex-col-reverse md:flex-row gap-3 items-start md:items-center">
+       <div className="fixed bottom-20 left-6 z-50 flex flex-col-reverse md:flex-row gap-3 items-start md:items-center md:bottom-6">
         <Button
           variant="outline"
           onClick={() => setIsNotesPanelOpen(true)}

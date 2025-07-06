@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { AppLogo } from '@/components/icons/app-logo';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Sidebar } from '@/components/layout/sidebar';
+import { BottomNav } from '@/components/layout/bottom-nav';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,25 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
-        <header className="p-4 border-b border-border">
-          <div className="container mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <AppLogo />
-              <h1 className="text-2xl font-bold text-primary">7K Life</h1>
-            </Link>
-            <nav className="flex items-center gap-2">
-              <Link href="/mind-map" passHref>
-                <Button variant="ghost">Mind Map</Button>
-              </Link>
-              <Link href="/study" passHref>
-                <Button variant="ghost">Study Mode</Button>
-              </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="container mx-auto p-4">
-          {children}
-        </main>
+        <div className="flex min-h-screen w-full">
+          <Sidebar />
+          <main className="flex-1 md:ml-20 pb-16 md:pb-0">
+            {children}
+          </main>
+        </div>
+        <BottomNav />
         <Toaster />
       </body>
     </html>
