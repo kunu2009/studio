@@ -5,6 +5,12 @@ export interface SkillChallenge {
   lastCompletedDate?: string; // ISO string date
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  color: string; // e.g., 'bg-red-500'
+}
+
 export interface TodoItem {
   id: string;
   task: string;
@@ -14,6 +20,8 @@ export interface TodoItem {
   tags?: string[];
   notes?: string;
   pomodorosCompleted?: number;
+  projectId?: string;
+  isNextAction?: boolean;
 }
 
 export interface JournalEntry {
