@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppLogo } from '@/components/icons/app-logo';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Added for Study link
+import { Button } from '@/components/ui/button';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,7 +35,10 @@ export default function RootLayout({
               <AppLogo />
               <h1 className="text-2xl font-bold text-primary">7K Life</h1>
             </Link>
-            <nav>
+            <nav className="flex items-center gap-2">
+              <Link href="/mind-map" passHref>
+                <Button variant="ghost">Mind Map</Button>
+              </Link>
               <Link href="/study" passHref>
                 <Button variant="ghost">Study Mode</Button>
               </Link>
