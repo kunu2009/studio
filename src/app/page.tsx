@@ -7,8 +7,9 @@ import { Journal } from '@/components/dashboard/journal';
 import { AiAssistantDialog } from '@/components/dashboard/ai-assistant-dialog';
 import { HistoryPanel } from '@/components/dashboard/history-panel';
 import { NotesPanel } from '@/components/dashboard/notes-panel';
+import { FlashSummaryDialog } from '@/components/dashboard/flash-summary-dialog';
 import { Button } from '@/components/ui/button';
-import { Bot, PanelRightOpen } from 'lucide-react';
+import { Bot, PanelRightOpen, Zap } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { JournalEntry } from '@/types';
 
@@ -16,6 +17,7 @@ export default function SevenKLifePage() { // Renamed component
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
+  const [isFlashSummaryOpen, setIsFlashSummaryOpen] = useState(false);
   
   const [loadedJournalEntries, setLoadedJournalEntries] = useState<JournalEntry[]>([]);
   // Updated local storage key
@@ -41,6 +43,15 @@ export default function SevenKLifePage() { // Renamed component
       </div>
 
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end">
+        <Button
+            variant="secondary"
+            size="lg"
+            className="rounded-full shadow-xl w-16 h-16 p-0"
+            onClick={() => setIsFlashSummaryOpen(true)}
+            aria-label="Open Flash Summary"
+            >
+            <Zap className="w-7 h-7" />
+        </Button>
          <Button
           variant="default"
           size="lg"
@@ -72,6 +83,7 @@ export default function SevenKLifePage() { // Renamed component
         entries={loadedJournalEntries}
       />
       <NotesPanel isOpen={isNotesPanelOpen} onOpenChange={setIsNotesPanelOpen} />
+      <FlashSummaryDialog isOpen={isFlashSummaryOpen} onOpenChange={setIsFlashSummaryOpen} />
     </div>
   );
 }
