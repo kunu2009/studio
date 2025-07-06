@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { HabitTracker } from '@/components/dashboard/habit-tracker';
+import { SkillChallenges } from '@/components/dashboard/skill-challenges';
 import { TodoList } from '@/components/dashboard/todo-list';
 import { Journal } from '@/components/dashboard/journal';
 import { AiAssistantDialog } from '@/components/dashboard/ai-assistant-dialog';
@@ -37,7 +37,7 @@ export default function SevenKLifePage() { // Renamed component
           <PomodoroTimer />
         </div>
         <div className="space-y-6">
-          <HabitTracker />
+          <SkillChallenges />
           <Journal onViewHistory={() => setIsHistoryPanelOpen(true)} />
         </div>
       </div>

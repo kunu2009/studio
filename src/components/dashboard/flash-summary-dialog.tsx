@@ -11,15 +11,15 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, X, Zap, BarChart2, BookOpen, ListTodo, Smile } from 'lucide-react';
+import { Loader2, X, Zap, BarChart2, BookOpen, ListTodo, Smile, Trophy } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
-import type { JournalEntry, TodoItem, Habit } from '@/types';
+import type { JournalEntry, TodoItem, SkillChallenge } from '@/types';
 import { handleGenerateWeeklySummaryAction } from '@/app/actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { isSameDay, subDays, startOfDay, parseISO } from 'date-fns';
+import { isSameDay, subDays, startOfDay, parseISO, isToday } from 'date-fns';
 
 interface FlashSummaryDialogProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
   const [isLoading, setIsLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
-  const [habits] = useLocalStorage<Habit[]>('sevenk-habits-v2', []);
+  const [challenges] = useLocalStorage<SkillChallenge[]>('sevenk-skill-challenges', []);
   const [todos] = useLocalStorage<TodoItem[]>('sevenk-todos', []);
   const [journalEntries] = useLocalStorage<JournalEntry[]>('sevenk-journal', []);
 
@@ -42,7 +42,7 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
 
         const sevenDaysAgo = subDays(new Date(), 7);
 
-        const recentHabits = habits.length > 0 ? `${habits.map(h => `${h.name}: ${h.value}/${h.goal}`).join(', ')}` : "No habits tracked.";
+        const challengeSummary = challenges.length > 0 ? `${challenges.map(c => `${c.name} (streak: ${c.streak})`).join(', ')}` : "No challenges tracked.";
         
         const recentTodos = todos.filter(t => t.dueDate && new Date(t.dueDate) > sevenDaysAgo);
         const todoSummary = recentTodos.length > 0 ? `Total: ${recentTodos.length}, Completed: ${recentTodos.filter(t => t.completed).length}` : "No tasks with due dates in the last week.";
@@ -51,7 +51,7 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
         const moodSummary = recentJournal.length > 0 ? `Logged ${recentJournal.length} entries. Moods: ${recentJournal.map(j => j.mood).filter(Boolean).join(', ')}` : "No journal entries in the last week.";
         
         const result = await handleGenerateWeeklySummaryAction({
-          habitData: recentHabits,
+          habitData: challengeSummary, // habitData is the key in the flow, so we pass challenges here
           todoData: todoSummary,
           journalData: moodSummary,
         });
@@ -65,11 +65,11 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
       };
       fetchSummary();
     }
-  }, [isOpen, habits, todos, journalEntries]);
+  }, [isOpen, challenges, todos, journalEntries]);
 
-  const unfinishedHabits = useMemo(() => {
-    return habits.filter(h => h.value < h.goal);
-  }, [habits]);
+  const challengesToCompleteToday = useMemo(() => {
+    return challenges.filter(c => !(c.lastCompletedDate && isToday(parseISO(c.lastCompletedDate))));
+  }, [challenges]);
 
   const today = startOfDay(new Date());
   const todaysGoals = useMemo(() => {
@@ -131,12 +131,12 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
                 ) : <p className="text-sm text-muted-foreground">No goals set for today. Go add some!</p>}
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" />Unfinished Habits</h3>
-                {unfinishedHabits.length > 0 ? (
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Trophy className="w-5 h-5 text-primary" />Today's Challenges</h3>
+                {challengesToCompleteToday.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    {unfinishedHabits.map(h => <li key={h.id}>{h.name}</li>)}
+                    {challengesToCompleteToday.map(c => <li key={c.id}>{c.name}</li>)}
                   </ul>
-                ) : <p className="text-sm text-muted-foreground">All habits are complete. Great job!</p>}
+                ) : <p className="text-sm text-muted-foreground">All challenges are complete. Great job!</p>}
               </div>
             </div>
 

@@ -1,12 +1,8 @@
-export type HabitType = 'yesNo' | 'counter';
-
-export interface Habit {
+export interface SkillChallenge {
   id: string;
   name: string;
-  type: HabitType;
-  value: number; // For yes/no, 0 or 1. For counter, the current count.
-  goal: number; // For yes/no, this is always 1. For counter, user-defined.
-  unit?: string; // Optional unit for counters
+  streak: number;
+  lastCompletedDate?: string; // ISO string date
 }
 
 export interface TodoItem {
