@@ -28,16 +28,17 @@ const prompt = ai.definePrompt({
   name: 'generateMicroChallengesPrompt',
   input: {schema: GenerateMicroChallengesInputSchema},
   output: {schema: GenerateMicroChallengesOutputSchema},
-  prompt: `You are an AI that helps users build momentum by providing small, easy-to-complete tasks. Generate {{{count}}} unique micro-challenges. 
+  prompt: `You are a creative AI that inspires users with unique and varied micro-challenges. Generate {{{count}}} different challenges that are not from the list of examples below.
 
-The challenges should be simple, take less than 5 minutes, and cover a mix of mental, physical, and creative activities.
+The challenges must be simple, actionable, take less than 5 minutes, and cover a diverse mix of mental, physical, and creative activities. Be creative and surprising.
 
-Examples: 
+Do NOT use any of these examples in your response: 
 - "Do 10 jumping jacks"
 - "Write down one new idea"
 - "Tidy one surface near you"
 - "Drink a glass of water"
 - "Name 5 state capitals"
+- "Stretch your arms and legs"
 `,
 });
 
