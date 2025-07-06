@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { SkillChallenges } from '@/components/dashboard/skill-challenges';
 import { TodoList } from '@/components/dashboard/todo-list';
 import { Journal } from '@/components/dashboard/journal';
 import { AiAssistantDialog } from '@/components/dashboard/ai-assistant-dialog';
@@ -9,6 +8,7 @@ import { HistoryPanel } from '@/components/dashboard/history-panel';
 import { NotesPanel } from '@/components/dashboard/notes-panel';
 import { FlashSummaryDialog } from '@/components/dashboard/flash-summary-dialog';
 import { PomodoroTimer } from '@/components/dashboard/pomodoro-timer';
+import { MicroChallenges } from '@/components/dashboard/micro-challenges';
 import { Button } from '@/components/ui/button';
 import { Bot, PanelRightOpen, Zap } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
@@ -37,7 +37,7 @@ export default function SevenKLifePage() { // Renamed component
           <PomodoroTimer />
         </div>
         <div className="space-y-6">
-          <SkillChallenges />
+          <MicroChallenges />
           <Journal onViewHistory={() => setIsHistoryPanelOpen(true)} />
         </div>
       </div>

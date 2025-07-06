@@ -7,3 +7,4 @@ import '@/ai/flows/explain-topic-flow.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
 import '@/ai/flows/text-to-speech-flow.ts';
 import '@/ai/flows/generate-weekly-summary.ts';
+import '@/ai/flows/generate-micro-challenges.ts';

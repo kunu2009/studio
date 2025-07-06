@@ -1,9 +1,3 @@
-export interface SkillChallenge {
-  id: string;
-  name: string;
-  streak: number;
-  lastCompletedDate?: string; // ISO string date
-}
 
 export interface Project {
   id: string;
@@ -58,4 +52,16 @@ export interface Flashcard {
   nextReview: string; // ISO string
   repetition: number; // How many times it has been successfully recalled
   easeFactor: number; // A multiplier for the next interval
+}
+
+export interface MicroChallenge {
+  text: string;
+  completed: boolean;
+}
+
+export interface MicroChallengeState {
+  date: string; // ISO date string (YYYY-MM-DD)
+  challenges: MicroChallenge[];
+  streak: number;
+  points: number;
 }

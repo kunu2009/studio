@@ -11,26 +11,33 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, X, Zap, BarChart2, BookOpen, ListTodo, Smile, Trophy } from 'lucide-react';
+import { Loader2, X, Zap, BarChart2, Smile, Trophy, ListTodo } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
-import type { JournalEntry, TodoItem, SkillChallenge } from '@/types';
+import type { JournalEntry, TodoItem, MicroChallengeState } from '@/types';
 import { handleGenerateWeeklySummaryAction } from '@/app/actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { isSameDay, subDays, startOfDay, parseISO, isToday } from 'date-fns';
+import { isSameDay, subDays, startOfDay, parseISO } from 'date-fns';
 
 interface FlashSummaryDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
 
+const initialChallengeState: MicroChallengeState = {
+  date: '',
+  challenges: [],
+  streak: 0,
+  points: 0
+};
+
 export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
-  const [challenges] = useLocalStorage<SkillChallenge[]>('sevenk-skill-challenges', []);
+  const [microChallengeState] = useLocalStorage<MicroChallengeState>('sevenk-micro-challenges', initialChallengeState);
   const [todos] = useLocalStorage<TodoItem[]>('sevenk-todos', []);
   const [journalEntries] = useLocalStorage<JournalEntry[]>('sevenk-journal', []);
 
@@ -42,7 +49,8 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
 
         const sevenDaysAgo = subDays(new Date(), 7);
 
-        const challengeSummary = challenges.length > 0 ? `${challenges.map(c => `${c.name} (streak: ${c.streak})`).join(', ')}` : "No challenges tracked.";
+        const completedTodayCount = microChallengeState.challenges.filter(c => c.completed).length;
+        const challengeSummary = `Current streak: ${microChallengeState.streak} days. ${completedTodayCount}/${microChallengeState.challenges.length} challenges completed today. Total points: ${microChallengeState.points}.`;
         
         const recentTodos = todos.filter(t => t.dueDate && new Date(t.dueDate) > sevenDaysAgo);
         const todoSummary = recentTodos.length > 0 ? `Total: ${recentTodos.length}, Completed: ${recentTodos.filter(t => t.completed).length}` : "No tasks with due dates in the last week.";
@@ -51,7 +59,7 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
         const moodSummary = recentJournal.length > 0 ? `Logged ${recentJournal.length} entries. Moods: ${recentJournal.map(j => j.mood).filter(Boolean).join(', ')}` : "No journal entries in the last week.";
         
         const result = await handleGenerateWeeklySummaryAction({
-          habitData: challengeSummary, // habitData is the key in the flow, so we pass challenges here
+          challengeData: challengeSummary,
           todoData: todoSummary,
           journalData: moodSummary,
         });
@@ -65,11 +73,11 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
       };
       fetchSummary();
     }
-  }, [isOpen, challenges, todos, journalEntries]);
+  }, [isOpen, microChallengeState, todos, journalEntries]);
 
   const challengesToCompleteToday = useMemo(() => {
-    return challenges.filter(c => !(c.lastCompletedDate && isToday(parseISO(c.lastCompletedDate))));
-  }, [challenges]);
+    return microChallengeState.challenges.filter(c => !c.completed);
+  }, [microChallengeState]);
 
   const today = startOfDay(new Date());
   const todaysGoals = useMemo(() => {
@@ -134,7 +142,7 @@ export function FlashSummaryDialog({ isOpen, onOpenChange }: FlashSummaryDialogP
                 <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Trophy className="w-5 h-5 text-primary" />Today's Challenges</h3>
                 {challengesToCompleteToday.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    {challengesToCompleteToday.map(c => <li key={c.id}>{c.name}</li>)}
+                    {challengesToCompleteToday.map(c => <li key={c.text}>{c.text}</li>)}
                   </ul>
                 ) : <p className="text-sm text-muted-foreground">All challenges are complete. Great job!</p>}
               </div>

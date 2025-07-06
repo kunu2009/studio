@@ -11,7 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateWeeklySummaryInputSchema = z.object({
-  habitData: z.string().describe("A summary of habit or challenge completion for the past 7 days, including streaks."),
+  challengeData: z.string().describe("A summary of micro-challenge completion for the past 7 days, including streaks and points."),
   todoData: z.string().describe("A summary of task completion for the past 7 days."),
   journalData: z.string().describe("A summary of moods recorded in the journal for the past 7 days."),
 });
@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a friendly and encouraging AI productivity coach. Your goal is to provide a short, insightful summary of the user's week to motivate them.
 
 Analyze the following data from the user's last 7 days:
-- Habits/Challenges: {{{habitData}}}
+- Micro-Challenges: {{{challengeData}}}
 - To-Do List: {{{todoData}}}
 - Journal Moods: {{{journalData}}}
 

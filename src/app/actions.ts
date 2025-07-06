@@ -6,6 +6,7 @@ import { explainTopic, ExplainTopicInput, ExplainTopicOutput } from "@/ai/flows/
 import { generateQuiz, GenerateQuizInput, GenerateQuizOutput } from "@/ai/flows/generate-quiz-flow";
 import { textToSpeech, TextToSpeechInput, TextToSpeechOutput } from "@/ai/flows/text-to-speech-flow";
 import { generateWeeklySummary, GenerateWeeklySummaryInput, GenerateWeeklySummaryOutput } from "@/ai/flows/generate-weekly-summary";
+import { generateMicroChallenges, GenerateMicroChallengesInput, GenerateMicroChallengesOutput } from "@/ai/flows/generate-micro-challenges";
 import type { Quiz, QuizQuestion } from "@/types";
 
 export async function handleGenerateTodoListAction(input: GenerateTodoListInput): Promise<GenerateTodoListOutput | { error: string }> {
@@ -67,6 +68,16 @@ export async function handleGenerateWeeklySummaryAction(input: GenerateWeeklySum
     return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
   }
 }
+
+export async function handleGenerateMicroChallengesAction(input: GenerateMicroChallengesInput): Promise<GenerateMicroChallengesOutput | { error: string }> {
+    try {
+      const result = await generateMicroChallenges(input);
+      return result;
+    } catch (error) {
+      console.error("Error generating micro challenges:", error);
+      return { error: (error instanceof Error ? error.message : "An unknown error occurred") };
+    }
+  }
 
 
 export type { Quiz, QuizQuestion };
