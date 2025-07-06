@@ -10,27 +10,28 @@ export function AppLogo(props: SVGProps<SVGSVGElement>) {
       aria-label="7K Life Logo"
       {...props}
     >
-      <defs>
-        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
-          <stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 0.7 }} />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#logoGradient)"
-        d="M50 5 A45 45 0 0 1 95 50 A45 45 0 0 1 50 95 A45 45 0 0 1 5 50 A45 45 0 0 1 50 5 Z M50 15 A35 35 0 0 0 15 50 A35 35 0 0 0 50 85 A35 35 0 0 0 85 50 A35 35 0 0 0 50 15 Z"
-      />
-      <text
-        x="50"
-        y="62" // Adjusted y for better vertical centering of "7K"
-        fontFamily="var(--font-geist-sans), Segoe UI, sans-serif"
-        fontSize="32" // Adjusted font size to fit "7K"
-        fill="hsl(var(--primary-foreground))"
-        textAnchor="middle"
-        fontWeight="bold"
-      >
-        7K
-      </text>
+      {/* Tower Group - drawn first to be in the background */}
+      <g>
+        {/* Tower Base */}
+        <path d="M42 95 V 75 H 58 V 95 Z" fill="hsl(var(--secondary))" />
+        {/* Main Tower Body */}
+        <path d="M44 75 V 35 H 56 V 75 Z" fill="hsl(var(--primary))" />
+        {/* Roof */}
+        <path d="M42 35 L 58 35 L 50 10 Z" fill="hsl(var(--primary))" />
+        {/* Shadow on tower */}
+        <path d="M44 75 V 35 H 50 V 75 Z" fill="hsl(var(--secondary))" opacity="0.4" />
+        {/* Window */}
+        <rect x="51" y="60" width="3" height="5" fill="hsl(var(--background))" />
+      </g>
+      
+      {/* 7K Text Shapes - drawn last to be in the foreground */}
+      <g fill="hsl(var(--foreground))">
+        {/* The "7" */}
+        <path d="M 5 20 L 48 20 L 40 32 L 25 80 L 10 80 L 22 32 L 5 32 Z" />
+        {/* The "K" */}
+        <path d="M 52 20 H 67 V 80 H 52 Z" />
+        <path d="M 67 50 L 95 20 L 95 35 L 72 50 L 95 65 L 95 80 L 67 50 Z" />
+      </g>
     </svg>
   );
 }
