@@ -41,6 +41,29 @@ Examples:
 `,
 });
 
+const fallbackChallenges = [
+    'Do 10 jumping jacks',
+    'Write down one new idea',
+    'Tidy one surface near you',
+    'Drink a glass of water',
+    'Name 5 state capitals',
+    'Take 5 deep breaths.',
+    'Stretch for 60 seconds.',
+    'Write down one thing you are grateful for.',
+    'Listen to one new song.',
+    'Walk around for 2 minutes.',
+    'Think of a good memory.',
+    'Plan one healthy meal.',
+    'Unfollow one social media account that doesn\'t bring you joy.',
+    'Compliment someone.',
+    'Watch a short, educational video.',
+  ];
+  
+function getRandomChallenges(count: number): string[] {
+    const shuffled = fallbackChallenges.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
 const generateMicroChallengesFlow = ai.defineFlow(
   {
     name: 'generateMicroChallengesFlow',
@@ -52,11 +75,7 @@ const generateMicroChallengesFlow = ai.defineFlow(
     if (!output?.challenges || output.challenges.length === 0) {
       // Fallback in case the model fails to return challenges
       return {
-        challenges: [
-          'Take 5 deep breaths.',
-          'Stretch for 60 seconds.',
-          'Write down one thing you are grateful for.',
-        ],
+        challenges: getRandomChallenges(input.count),
       };
     }
     return output;
