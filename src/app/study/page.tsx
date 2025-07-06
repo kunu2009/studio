@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpenCheck, BrainCircuit } from 'lucide-react';
+import { BookOpenCheck, BrainCircuit, Layers } from 'lucide-react';
 import { QuizGenerator } from '@/components/study/quiz-generator';
+import { Flashcards } from '@/components/study/flashcards';
 
 export default function StudyPage() {
   return (
     <div className="flex flex-col items-center justify-center">
       <Tabs defaultValue="study" className="w-full max-w-2xl">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="study">
             <BookOpenCheck className="w-4 h-4 mr-2" />
             Study Materials
@@ -15,6 +16,10 @@ export default function StudyPage() {
           <TabsTrigger value="quiz">
             <BrainCircuit className="w-4 h-4 mr-2" />
             Practice Quiz
+          </TabsTrigger>
+          <TabsTrigger value="flashcards">
+            <Layers className="w-4 h-4 mr-2" />
+            Flashcards
           </TabsTrigger>
         </TabsList>
         <TabsContent value="study">
@@ -36,6 +41,9 @@ export default function StudyPage() {
         </TabsContent>
         <TabsContent value="quiz">
             <QuizGenerator />
+        </TabsContent>
+        <TabsContent value="flashcards">
+            <Flashcards />
         </TabsContent>
       </Tabs>
     </div>

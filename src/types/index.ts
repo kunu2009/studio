@@ -14,7 +14,6 @@ export interface TodoItem {
   tags?: string[];
   notes?: string;
   pomodorosCompleted?: number;
-  // folderPath?: string; // For future folder structure e.g. "Work/ProjectA"
 }
 
 export interface JournalEntry {
@@ -39,4 +38,16 @@ export interface QuizQuestion {
 
 export interface Quiz {
   questions: QuizQuestion[];
+}
+
+export interface Flashcard {
+  id: string;
+  question: string;
+  answer: string;
+  subject: string;
+  // For spaced repetition
+  lastReviewed?: string; // ISO string
+  nextReview: string; // ISO string
+  repetition: number; // How many times it has been successfully recalled
+  easeFactor: number; // A multiplier for the next interval
 }
