@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ListChecks, Trash2, PlusCircle, CalendarIcon, AlertTriangle, Info, CheckCircle, Pencil } from 'lucide-react';
+import { ListChecks, Trash2, PlusCircle, CalendarIcon, AlertTriangle, Info, CheckCircle, Pencil, Timer } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import type { TodoItem } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -32,6 +32,7 @@ export function TodoList() {
       completed: false,
       priority: newPriority,
       dueDate: newDueDate ? newDueDate.toISOString() : undefined,
+      pomodorosCompleted: 0,
     };
     setTodos(prevTodos => [newTodo, ...prevTodos]); // Add to top for visibility
     setNewTask('');
@@ -182,11 +183,16 @@ export function TodoList() {
                           >
                             {todo.task}
                           </label>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                             {getPriorityIcon(todo.priority)}
                             {todo.priority && <span className="capitalize">{todo.priority}</span>}
-                            {todo.priority && todo.dueDate && <span className="mx-1">·</span>}
                             {todo.dueDate && <span>{format(parseISO(todo.dueDate), "MMM d")}</span>}
+                            {(todo.pomodorosCompleted ?? 0) > 0 && (
+                                <span className="flex items-center gap-1 font-mono">
+                                    <Timer className="w-3 h-3" />
+                                    {todo.pomodorosCompleted}
+                                </span>
+                            )}
                           </div>
                         </div>
                       </div>

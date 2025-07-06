@@ -8,6 +8,7 @@ import { AiAssistantDialog } from '@/components/dashboard/ai-assistant-dialog';
 import { HistoryPanel } from '@/components/dashboard/history-panel';
 import { NotesPanel } from '@/components/dashboard/notes-panel';
 import { FlashSummaryDialog } from '@/components/dashboard/flash-summary-dialog';
+import { PomodoroTimer } from '@/components/dashboard/pomodoro-timer';
 import { Button } from '@/components/ui/button';
 import { Bot, PanelRightOpen, Zap } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
@@ -30,14 +31,13 @@ export default function SevenKLifePage() { // Renamed component
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <TodoList />
+          <PomodoroTimer />
         </div>
-        <div className="lg:col-span-1">
+        <div className="space-y-6">
           <HabitTracker />
-        </div>
-        <div className="lg:col-span-1">
           <Journal onViewHistory={() => setIsHistoryPanelOpen(true)} />
         </div>
       </div>

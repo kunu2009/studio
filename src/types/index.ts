@@ -17,6 +17,7 @@ export interface TodoItem {
   dueDate?: string; // ISO string date
   tags?: string[];
   notes?: string;
+  pomodorosCompleted?: number;
   // folderPath?: string; // For future folder structure e.g. "Work/ProjectA"
 }
 
