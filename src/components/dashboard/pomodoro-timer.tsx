@@ -124,7 +124,7 @@ export function PomodoroTimer() {
         <CardDescription>Link a task and start a focus session.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-6">
-        <div className="text-8xl font-mono font-bold text-center w-full bg-card-foreground/5 p-4 rounded-lg">
+        <div className="text-7xl md:text-8xl font-mono font-bold text-center w-full bg-card-foreground/5 p-4 rounded-lg">
           {formatTime(timeLeft)}
         </div>
 
