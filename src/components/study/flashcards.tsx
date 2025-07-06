@@ -13,9 +13,17 @@ import { calculateNextReview } from '@/lib/srs';
 import { Plus, Trash2, Check, X, Ban, BookOpen, Repeat } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { defaultFlashcards as defaultFlashcardData } from '@/lib/default-flashcards';
 
 export function Flashcards() {
-  const [flashcards, setFlashcards] = useLocalStorage<Flashcard[]>('sevenk-flashcards', []);
+  const initialFlashcards = useMemo(() => 
+    defaultFlashcardData.map(card => ({
+      ...card,
+      id: crypto.randomUUID(),
+    })),
+  []);
+
+  const [flashcards, setFlashcards] = useLocalStorage<Flashcard[]>('sevenk-flashcards', initialFlashcards);
   const { toast } = useToast();
 
   // State for the component
@@ -37,6 +45,7 @@ export function Flashcards() {
   useEffect(() => {
     // Reset index if the list of due cards changes
     setCurrentCardIndex(0);
+    setIsFlipped(false);
   }, [dueForReview.length]);
 
   const currentCard = dueForReview[currentCardIndex];
@@ -102,22 +111,21 @@ export function Flashcards() {
             <div className="relative w-full h-64 perspective-1000">
                 <div
                     className={`absolute w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
+                    onClick={() => setIsFlipped(!isFlipped)}
                 >
                     {/* Front of card */}
-                    <div className="absolute w-full h-full backface-hidden flex flex-col items-center justify-center p-6 border rounded-lg bg-card text-card-foreground shadow-lg">
+                    <div className="absolute w-full h-full backface-hidden flex flex-col items-center justify-center p-6 border rounded-lg bg-card text-card-foreground shadow-lg cursor-pointer">
                         <Badge variant="secondary" className="absolute top-3 right-3">{currentCard.subject}</Badge>
                         <p className="text-lg font-semibold text-center">{currentCard.question}</p>
                     </div>
                     {/* Back of card */}
-                    <div className="absolute w-full h-full backface-hidden rotate-y-180 flex items-center justify-center p-6 border rounded-lg bg-secondary text-secondary-foreground shadow-lg">
+                    <div className="absolute w-full h-full backface-hidden rotate-y-180 flex items-center justify-center p-6 border rounded-lg bg-secondary text-secondary-foreground shadow-lg cursor-pointer">
                         <p className="text-lg text-center">{currentCard.answer}</p>
                     </div>
                 </div>
             </div>
 
-            {!isFlipped ? (
-                <Button onClick={() => setIsFlipped(true)} className="w-full">Show Answer</Button>
-            ) : (
+            {isFlipped ? (
                 <div className="grid grid-cols-3 gap-2 w-full">
                     <Button variant="destructive" onClick={() => handleReviewDecision(0)}>
                         <X className="w-4 h-4 mr-2" /> Again
@@ -129,6 +137,8 @@ export function Flashcards() {
                         <Check className="w-4 h-4 mr-2" /> Easy
                     </Button>
                 </div>
+            ) : (
+                <Button onClick={() => setIsFlipped(true)} className="w-full">Show Answer</Button>
             )}
         </div>
     );
